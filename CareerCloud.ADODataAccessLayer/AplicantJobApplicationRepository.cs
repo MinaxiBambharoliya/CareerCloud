@@ -9,14 +9,11 @@ using System.Text;
 
 namespace CareerCloud.ADODataAccessLayer
 {
-    public class AplicantJobApplicationRepository : IDataRepository<ApplicantJobApplicationPoco>
+    public class AplicantJobApplicationRepository : BaseADO, IDataRepository<ApplicantJobApplicationPoco>
     {
         public void Add(params ApplicantJobApplicationPoco[] items)
         {
-            IConfigurationBuilder configBuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
-            IConfiguration config = configBuilder.Build();
-            SqlConnection conn = new SqlConnection(config.GetConnectionString("ConnectionString"));
-            //SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString);
+            using SqlConnection conn = new SqlConnection(connString);
             SqlCommand cmd = new SqlCommand();
             cmd.Connection = conn;
 
@@ -39,7 +36,7 @@ namespace CareerCloud.ADODataAccessLayer
                 cmd.Parameters.AddWithValue("@Application_Date", item.ApplicationDate);
 
                 conn.Open();
-                cmd.ExecuteNonQuery();
+                int rowEffected = cmd.ExecuteNonQuery();
                 conn.Close();
 
             }
@@ -67,12 +64,45 @@ namespace CareerCloud.ADODataAccessLayer
 
         public void Remove(params ApplicantJobApplicationPoco[] items)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = conn;
+
+            foreach (ApplicantJobApplicationPoco item in items)
+            {
+                cmd.CommandText = @"DELETE FROM [dbo].[Applicant_Job_Applications] WHERE [Id] = @Id";
+
+                cmd.Parameters.AddWithValue("@Id", item.Id);
+
+                conn.Open();
+                int rowEffected = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
         }
 
         public void Update(params ApplicantJobApplicationPoco[] items)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = conn;
+
+            foreach (ApplicantJobApplicationPoco item in items)
+            {
+                cmd.CommandText = @"UPDATE [dbo].[Applicant_Job_Applications]
+                   SET [Applicant] = @Applicant
+                   ,[Job] = @Job
+                   ,[Application_Date] = @Application_Date
+                WHERE [Id] = @Id";
+
+                cmd.Parameters.AddWithValue("@Id", item.Id);
+                cmd.Parameters.AddWithValue("@Applicant", item.Applicant);
+                cmd.Parameters.AddWithValue("@Job", item.Job);
+                cmd.Parameters.AddWithValue("@Application_Date", item.ApplicationDate);
+
+                conn.Open();
+                int rowEffected = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
         }
     }
 }

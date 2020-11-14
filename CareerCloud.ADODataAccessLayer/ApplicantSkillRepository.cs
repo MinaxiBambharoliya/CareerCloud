@@ -9,16 +9,15 @@ using System.Text;
 
 namespace CareerCloud.ADODataAccessLayer
 {
-    public class ApplicantSkillRepository : IDataRepository<ApplicantSkillPoco>
+    public class ApplicantSkillRepository : BaseADO,IDataRepository<ApplicantSkillPoco>
     {
         public void Add(params ApplicantSkillPoco[] items)
         {
-            IConfigurationBuilder configBuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
-            IConfiguration config = configBuilder.Build();
-            SqlConnection conn = new SqlConnection(config.GetConnectionString("ConnectionString"));
-            //SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString);
-            SqlCommand cmd = new SqlCommand();
-            cmd.Connection = conn;
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
 
             foreach (ApplicantSkillPoco item in items)
             {
@@ -51,7 +50,7 @@ namespace CareerCloud.ADODataAccessLayer
                 cmd.Parameters.AddWithValue("@End_Year", item.EndYear);
 
                 conn.Open();
-                cmd.ExecuteNonQuery();
+                int rowEffected = cmd.ExecuteNonQuery();
                 conn.Close();
 
             }
@@ -79,12 +78,57 @@ namespace CareerCloud.ADODataAccessLayer
 
         public void Remove(params ApplicantSkillPoco[] items)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
+
+            foreach (ApplicantSkillPoco item in items)
+            {
+                cmd.CommandText = @"DELETE FROM [dbo].[Applicant_Skills] WHERE [Id]=@Id";
+
+                cmd.Parameters.AddWithValue("@Id", item.Id);
+
+                conn.Open();
+                int rowEffected = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
         }
 
         public void Update(params ApplicantSkillPoco[] items)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
+
+            foreach (ApplicantSkillPoco item in items)
+            {
+                cmd.CommandText = @"UPDATE [dbo].[Applicant_Skills]
+                   SET [Applicant] = @Applicant
+                   ,[Skill] = @Skill
+                   ,[Skill_Level] = @Skill_Level
+                   ,[Start_Month] = @Start_Month
+                   ,[Start_Year] = @Start_Year
+                   ,[End_Month] = @End_Month
+                   ,[End_Year] = @End_Year
+                    WHERE [Id] = @Id";
+
+                cmd.Parameters.AddWithValue("@Id", item.Id);
+                cmd.Parameters.AddWithValue("@Applicant", item.Applicant);
+                cmd.Parameters.AddWithValue("@Skill", item.Skill);
+                cmd.Parameters.AddWithValue("@Skill_Level", item.SkillLevel);
+                cmd.Parameters.AddWithValue("@Start_Month", item.StartMonth);
+                cmd.Parameters.AddWithValue("@Start_Year", item.StartYear);
+                cmd.Parameters.AddWithValue("@End_Month", item.EndMonth);
+                cmd.Parameters.AddWithValue("@End_Year", item.EndYear);
+
+                conn.Open();
+                int rowEffected = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+            }
         }
-    }
 }

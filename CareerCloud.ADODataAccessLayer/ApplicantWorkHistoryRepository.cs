@@ -9,51 +9,57 @@ using System.Text;
 
 namespace CareerCloud.ADODataAccessLayer
 {
-    public class ApplicantWorkHistoryRepository : IDataRepository<ApplicantWorkHistoryPoco>
+    public class ApplicantWorkHistoryRepository : BaseADO,IDataRepository<ApplicantWorkHistoryPoco>
     {
         public void Add(params ApplicantWorkHistoryPoco[] items)
         {
-            IConfigurationBuilder configBuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
-            IConfiguration config = configBuilder.Build();
-            SqlConnection conn = new SqlConnection(config.GetConnectionString("ConnectionString"));
-            //SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString);
-            SqlCommand cmd = new SqlCommand();
-            cmd.Connection = conn;
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
 
             foreach (ApplicantWorkHistoryPoco item in items)
             {
                 cmd.CommandText = @"INSERT INTO [dbo].[Applicant_Work_History]
-           ([Id]
-           ,[Applicant]
-           ,[Company_Name]
-           ,[Country_Code]
-           ,[Location]
-           ,[Job_Title]
-           ,[Job_Description]
-           ,[Start_Month]
-           ,[Start_Year]
-           ,[End_Month]
-           ,[End_Year])
-     VALUES
-           (<Id, uniqueidentifier,>
-           ,<Applicant, uniqueidentifier,>
-           ,<Company_Name, nvarchar(150),>
-           ,<Country_Code, char(10),>
-           ,<Location, nvarchar(50),>
-           ,<Job_Title, nvarchar(50),>
-           ,<Job_Description, nvarchar(500),>
-           ,<Start_Month, smallint,>
-           ,<Start_Year, int,>
-           ,<End_Month, smallint,>
-           ,<End_Year, int,>)";
+                           ([Id]
+                           ,[Applicant]
+                           ,[Company_Name]
+                           ,[Country_Code]
+                           ,[Location]
+                           ,[Job_Title]
+                           ,[Job_Description]
+                           ,[Start_Month]
+                           ,[Start_Year]
+                           ,[End_Month]
+                           ,[End_Year])
+                     VALUES
+                           (@Id
+                           ,@Applicant
+                           ,@Company_Name
+                           ,@Country_Code
+                           ,@Location
+                           ,@Job_Title
+                           ,@Job_Description
+                           ,@Start_Month
+                           ,@Start_Year
+                           ,@End_Month
+                           ,@End_Year)";
 
                 cmd.Parameters.AddWithValue("@Id", item.Id);
                 cmd.Parameters.AddWithValue("@Applicant", item.Applicant);
-                cmd.Parameters.AddWithValue("@Job", item.Job);
-                cmd.Parameters.AddWithValue("@Application_Date", item.ApplicationDate);
+                cmd.Parameters.AddWithValue("@Company_Name", item.CompanyName);
+                cmd.Parameters.AddWithValue("@Country_Code", item.CountryCode);
+                cmd.Parameters.AddWithValue("@Location", item.Location);
+                cmd.Parameters.AddWithValue("@Job_Title", item.JobTitle);
+                cmd.Parameters.AddWithValue("@Job_Description", item.JobDescription);
+                cmd.Parameters.AddWithValue("@Start_Month", item.StartMonth);
+                cmd.Parameters.AddWithValue("@Start_Year", item.StartYear);
+                cmd.Parameters.AddWithValue("@End_Month", item.EndMonth);
+                cmd.Parameters.AddWithValue("@End_Year", item.EndYear);
 
                 conn.Open();
-                cmd.ExecuteNonQuery();
+                int rowEffected = cmd.ExecuteNonQuery();
                 conn.Close();
             }
         }
@@ -80,12 +86,63 @@ namespace CareerCloud.ADODataAccessLayer
 
         public void Remove(params ApplicantWorkHistoryPoco[] items)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
+
+            foreach(ApplicantWorkHistoryPoco item in items)
+            {
+                cmd.CommandText = @"DELETE FROM [dbo].[Applicant_Work_History] WHERE [Id] = @Id";
+
+                cmd.Parameters.AddWithValue("@Id", item.Id);
+
+                conn.Open();
+                int rowEffected = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
         }
 
         public void Update(params ApplicantWorkHistoryPoco[] items)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
+
+            foreach (ApplicantWorkHistoryPoco item in items)
+            {
+                cmd.CommandText = @"UPDATE [dbo].[Applicant_Work_History]
+                          SET [Applicant] = @Applicant
+                           ,[Company_Name] = @Company_Name
+                           ,[Country_Code] = @Country_Code
+                           ,[Location] = @Location
+                           ,[Job_Title] = @Job_Title
+                           ,[Job_Description] = @Job_Description
+                           ,[Start_Month] = @Start_Month
+                           ,[Start_Year] = @Start_Year
+                           ,[End_Month] = @End_Month
+                           ,[End_Year] = @End_Year
+                        Where [Id] = @Id";
+
+                cmd.Parameters.AddWithValue("@Id", item.Id);
+                cmd.Parameters.AddWithValue("@Applicant", item.Applicant);
+                cmd.Parameters.AddWithValue("@Company_Name", item.CompanyName);
+                cmd.Parameters.AddWithValue("@Country_Code", item.CountryCode);
+                cmd.Parameters.AddWithValue("@Location", item.Location);
+                cmd.Parameters.AddWithValue("@Job_Title", item.JobTitle);
+                cmd.Parameters.AddWithValue("@Job_Description", item.JobDescription);
+                cmd.Parameters.AddWithValue("@Start_Month", item.StartMonth);
+                cmd.Parameters.AddWithValue("@Start_Year", item.StartYear);
+                cmd.Parameters.AddWithValue("@End_Month", item.EndMonth);
+                cmd.Parameters.AddWithValue("@End_Year", item.EndYear);
+
+                conn.Open();
+                int rowEffected = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
         }
     }
 }

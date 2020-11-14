@@ -9,35 +9,34 @@ using System.Linq.Expressions;
 
 namespace CareerCloud.ADODataAccessLayer
 {
-    public class ApplicantEducationRepository : IDataRepository<ApplicantEducationPoco>
+    public class ApplicantEducationRepository : BaseADO,IDataRepository<ApplicantEducationPoco>
     {
         public void Add(params ApplicantEducationPoco[] items)
         {
-            IConfigurationBuilder configBuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
-            IConfiguration config = configBuilder.Build();
-            SqlConnection conn = new SqlConnection(config.GetConnectionString("ConnectionString"));
-            //SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString);
-            SqlCommand cmd = new SqlCommand();
-            cmd.Connection = conn;
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
 
             foreach (ApplicantEducationPoco item in items)
             {
                 cmd.CommandText = @"INSERT INTO [dbo].[Applicant_Educations]
-           ([Id]
-           ,[Applicant]
-           ,[Major]
-           ,[Certificate_Diploma]
-           ,[Start_Date]
-           ,[Completion_Date]
-           ,[Completion_Percent])
-                VALUES
-           (@Id
-           ,@Applicant
-           ,@Major
-           ,@Certificate_Diploma
-           ,@Start_Date
-           ,@Completion_Date
-           ,@Completion_Percent)";
+                       ([Id]
+                       ,[Applicant]
+                       ,[Major]
+                       ,[Certificate_Diploma]
+                       ,[Start_Date]
+                       ,[Completion_Date]
+                       ,[Completion_Percent])
+                            VALUES
+                       (@Id
+                       ,@Applicant
+                       ,@Major
+                       ,@Certificate_Diploma
+                       ,@Start_Date
+                       ,@Completion_Date
+                       ,@Completion_Percent)";
 
                 cmd.Parameters.AddWithValue("@Id", item.Id);
                 cmd.Parameters.AddWithValue("@Applicant", item.Applicant);
@@ -48,7 +47,7 @@ namespace CareerCloud.ADODataAccessLayer
                 cmd.Parameters.AddWithValue("@Completion_Percent", item.CompletionPercent);
 
                 conn.Open();
-                cmd.ExecuteNonQuery();
+                int rowEffected = cmd.ExecuteNonQuery();
                 conn.Close();
 
             }
@@ -78,31 +77,47 @@ namespace CareerCloud.ADODataAccessLayer
 
         public void Remove(params ApplicantEducationPoco[] items)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
+
+
+            foreach (ApplicantEducationPoco item in items)
+            {
+                cmd.CommandText = @"DELETE FROM [dbo].[Applicant_Educations] WHERE [Id] = @Id)";
+
+                cmd.Parameters.AddWithValue("@Id", item.Id);
+                
+                conn.Open();
+                int rowEffected = cmd.ExecuteNonQuery();
+                conn.Close();
+
+            }
         }
 
         public void Update(params ApplicantEducationPoco[] items)
         {
-            IConfigurationBuilder configBuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
-            IConfiguration config = configBuilder.Build();
-            SqlConnection conn = new SqlConnection(config.GetConnectionString("ConnectionString"));
-            //SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString);
-            SqlCommand cmd = new SqlCommand();
-            cmd.Connection = conn;
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
+
 
             foreach (ApplicantEducationPoco item in items)
             {
                // cmd.CommandType = System.Data.CommandType.StoredProcedure
 
                 cmd.CommandText = @"UPDATE [dbo].[Applicant_Educations]
-               SET [Id] = @Id
-                  ,[Applicant] = @Applicant
+               SET [Applicant] = @Applicant
                   ,[Major] = @Major
                   ,[Certificate_Diploma] = @Certificate_Diploma
                   ,[Start_Date] = @Start_Date
                   ,[Completion_Date] = @Completion_Date
                   ,[Completion_Percent] = @Completion_Percent
-                WHERE Id = ";
+                WHERE Id = @Id";
 
                 cmd.Parameters.AddWithValue("@Id", item.Id);
                 cmd.Parameters.AddWithValue("@Applicant", item.Applicant);
@@ -113,7 +128,7 @@ namespace CareerCloud.ADODataAccessLayer
                 cmd.Parameters.AddWithValue("@Completion_Percent", item.CompletionPercent);
 
                 conn.Open();
-                cmd.ExecuteNonQuery();
+                int rowEffected = cmd.ExecuteNonQuery();
                 conn.Close();
             }
         }

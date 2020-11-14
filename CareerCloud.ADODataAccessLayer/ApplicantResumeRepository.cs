@@ -9,17 +9,15 @@ using System.Text;
 
 namespace CareerCloud.ADODataAccessLayer
 {
-    public class ApplicantResumeRepository : IDataRepository<ApplicantResumePoco>
+    public class ApplicantResumeRepository : BaseADO,IDataRepository<ApplicantResumePoco>
     {
         public void Add(params ApplicantResumePoco[] items)
         {
-            IConfigurationBuilder configBuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
-            IConfiguration config = configBuilder.Build();
-            SqlConnection conn = new SqlConnection(config.GetConnectionString("ConnectionString"));
-            //SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString);
-            SqlCommand cmd = new SqlCommand();
-            cmd.Connection = conn;
-
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
             foreach (ApplicantResumePoco item in items)
             {
                 cmd.CommandText = @"INSERT INTO [dbo].[Applicant_Resumes]
@@ -38,8 +36,8 @@ namespace CareerCloud.ADODataAccessLayer
                 cmd.Parameters.AddWithValue("@Resume", item.Resume);
                 cmd.Parameters.AddWithValue("@Last_Updated", item.LastUpdated);
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                conn.Open(); 
+                int rowEffected = cmd.ExecuteNonQuery();
                 conn.Close();
 
             }
@@ -67,12 +65,48 @@ namespace CareerCloud.ADODataAccessLayer
 
         public void Remove(params ApplicantResumePoco[] items)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
+
+            foreach(ApplicantResumePoco item in items)
+            {
+                cmd.CommandText = @"DELETE FROM [dbo].[Applicant_Resumes] WHERE [Id]=@Id";
+
+                cmd.Parameters.AddWithValue("@Id", item.Id);
+
+                conn.Open();
+                int rowEffected = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
         }
 
         public void Update(params ApplicantResumePoco[] items)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand
+            {
+                Connection = conn
+            };
+            foreach (ApplicantResumePoco item in items)
+            {
+                cmd.CommandText = @"UPDATE [dbo].[Applicant_Resumes]
+                    SET [Applicant] = @Applicant
+                    ,[Resume] = @Resume
+                    ,[Last_Updated] = @Last_Updated
+                    WHERE [Id] = @Id";
+
+                cmd.Parameters.AddWithValue("@Id", item.Id);
+                cmd.Parameters.AddWithValue("@Applicant", item.Applicant);
+                cmd.Parameters.AddWithValue("@Resume", item.Resume);
+                cmd.Parameters.AddWithValue("@Last_Updated", item.LastUpdated);
+
+                conn.Open();
+                int rowEffected = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
         }
     }
 }
