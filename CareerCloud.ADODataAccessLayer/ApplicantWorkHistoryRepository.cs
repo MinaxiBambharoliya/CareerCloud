@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -71,7 +72,50 @@ namespace CareerCloud.ADODataAccessLayer
 
         public IList<ApplicantWorkHistoryPoco> GetAll(params Expression<Func<ApplicantWorkHistoryPoco, object>>[] navigationProperties)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = conn;
+            cmd.CommandText = @"SELECT [Id]
+                              ,[Applicant]
+                              ,[Company_Name]
+                              ,[Country_Code]
+                              ,[Location]
+                              ,[Job_Title]
+                              ,[Job_Description]
+                              ,[Start_Month]
+                              ,[Start_Year]
+                              ,[End_Month]
+                              ,[End_Year]
+                              ,[Time_Stamp]
+                          FROM [dbo].[Applicant_Work_History]";
+
+            conn.Open();
+            SqlDataReader rdr = cmd.ExecuteReader();
+
+            ApplicantWorkHistoryPoco[] pocos = new ApplicantWorkHistoryPoco[1000];
+            int counter = 0;
+
+            while (rdr.Read())
+            {
+                ApplicantWorkHistoryPoco poco = new ApplicantWorkHistoryPoco();
+                poco.Id = rdr.GetGuid(0);
+                poco.Applicant = rdr.GetGuid(1);
+                poco.CompanyName = rdr.GetString(2);
+                poco.CountryCode = rdr.GetString(3);
+                poco.Location = rdr.GetString(4);
+                poco.JobTitle = rdr.GetString(5);
+                poco.JobDescription = rdr.GetString(6);
+                poco.StartMonth = (short)rdr[7];
+                poco.StartYear = (int)rdr[8];
+                poco.EndMonth = (short)rdr[9];
+                poco.EndYear = (int)rdr[10];
+                poco.TimeStamp = (byte[])rdr[11];
+
+                pocos[counter++] = poco;
+            }
+            conn.Close();
+
+            return pocos.Where(p => p != null).ToList();
         }
 
         public IList<ApplicantWorkHistoryPoco> GetList(Expression<Func<ApplicantWorkHistoryPoco, bool>> where, params Expression<Func<ApplicantWorkHistoryPoco, object>>[] navigationProperties)
@@ -81,7 +125,8 @@ namespace CareerCloud.ADODataAccessLayer
 
         public ApplicantWorkHistoryPoco GetSingle(Expression<Func<ApplicantWorkHistoryPoco, bool>> where, params Expression<Func<ApplicantWorkHistoryPoco, object>>[] navigationProperties)
         {
-            throw new NotImplementedException();
+            IQueryable<ApplicantWorkHistoryPoco> pocos = GetAll().AsQueryable();
+            return pocos.Where(where).FirstOrDefault();
         }
 
         public void Remove(params ApplicantWorkHistoryPoco[] items)

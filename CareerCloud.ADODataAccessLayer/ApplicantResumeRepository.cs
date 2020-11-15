@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -50,7 +51,34 @@ namespace CareerCloud.ADODataAccessLayer
 
         public IList<ApplicantResumePoco> GetAll(params Expression<Func<ApplicantResumePoco, object>>[] navigationProperties)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = conn;
+            cmd.CommandText = @"SELECT [Id]
+                              ,[Applicant]
+                              ,[Resume]
+                              ,[Last_Updated]
+                          FROM [dbo].[Applicant_Resumes]";
+
+            conn.Open();
+            SqlDataReader rdr = cmd.ExecuteReader();
+
+            ApplicantResumePoco[] pocos = new ApplicantResumePoco[1000];
+            int counter = 0;
+
+            while (rdr.Read())
+            {
+                ApplicantResumePoco poco = new ApplicantResumePoco();
+                poco.Id = rdr.GetGuid(0);
+                poco.Applicant = rdr.GetGuid(1);
+                poco.Resume = rdr.GetString(2);
+                poco.LastUpdated = rdr.IsDBNull(3)?(DateTime?)null : (DateTime?)rdr.GetDateTime(3);
+
+                pocos[counter++] = poco;
+            }
+            conn.Close();
+
+            return pocos.Where(p => p != null).ToList();
         }
 
         public IList<ApplicantResumePoco> GetList(Expression<Func<ApplicantResumePoco, bool>> where, params Expression<Func<ApplicantResumePoco, object>>[] navigationProperties)
@@ -60,7 +88,8 @@ namespace CareerCloud.ADODataAccessLayer
 
         public ApplicantResumePoco GetSingle(Expression<Func<ApplicantResumePoco, bool>> where, params Expression<Func<ApplicantResumePoco, object>>[] navigationProperties)
         {
-            throw new NotImplementedException();
+            IQueryable<ApplicantResumePoco> pocos = GetAll().AsQueryable();
+            return pocos.Where(where).FirstOrDefault();
         }
 
         public void Remove(params ApplicantResumePoco[] items)

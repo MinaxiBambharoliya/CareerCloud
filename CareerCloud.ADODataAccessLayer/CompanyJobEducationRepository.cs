@@ -3,12 +3,13 @@ using CareerCloud.Pocos;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
 namespace CareerCloud.ADODataAccessLayer
 {
-    class CompanyJobEducationRepository : BaseADO, IDataRepository<CompanyJobEducationPoco>
+    public class CompanyJobEducationRepository : BaseADO, IDataRepository<CompanyJobEducationPoco>
     {
         public void Add(params CompanyJobEducationPoco[] items)
         {
@@ -49,7 +50,37 @@ namespace CareerCloud.ADODataAccessLayer
 
         public IList<CompanyJobEducationPoco> GetAll(params Expression<Func<CompanyJobEducationPoco, object>>[] navigationProperties)
         {
-            throw new NotImplementedException();
+
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = conn;
+            cmd.CommandText = @"SELECT [Id]
+                              ,[Job]
+                              ,[Major]
+                              ,[Importance]
+                              ,[Time_Stamp]
+                          FROM [dbo].[Company_Job_Educations]";
+
+            conn.Open();
+            SqlDataReader rdr = cmd.ExecuteReader();
+
+            CompanyJobEducationPoco[] pocos = new CompanyJobEducationPoco[10000];
+            int counter = 0;
+
+            while (rdr.Read())
+            {
+                CompanyJobEducationPoco poco = new CompanyJobEducationPoco();
+                poco.Id = rdr.GetGuid(0);
+                poco.Job = rdr.GetGuid(1);
+                poco.Major = rdr.GetString(2);
+                poco.Importance = (short)rdr[3];
+                poco.TimeStamp = (byte[])rdr[4];
+
+                pocos[counter++] = poco;
+            }
+            conn.Close();
+
+            return pocos.Where(p => p != null).ToList();
         }
 
         public IList<CompanyJobEducationPoco> GetList(Expression<Func<CompanyJobEducationPoco, bool>> where, params Expression<Func<CompanyJobEducationPoco, object>>[] navigationProperties)
@@ -59,7 +90,8 @@ namespace CareerCloud.ADODataAccessLayer
 
         public CompanyJobEducationPoco GetSingle(Expression<Func<CompanyJobEducationPoco, bool>> where, params Expression<Func<CompanyJobEducationPoco, object>>[] navigationProperties)
         {
-            throw new NotImplementedException();
+            IQueryable<CompanyJobEducationPoco> pocos = GetAll().AsQueryable();
+            return pocos.Where(where).FirstOrDefault();
         }
 
         public void Remove(params CompanyJobEducationPoco[] items)

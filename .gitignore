@@ -30,8 +30,8 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
-CareerCloudCore.UnitTests.Assignment1/
-CareerCloudCore.UnitTests.Assignment2/
+CareerCloudCore.UnitTests.Assignment1
+CareerCloudCore.UnitTests.Assignment2
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

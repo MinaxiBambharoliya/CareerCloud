@@ -3,6 +3,7 @@ using CareerCloud.Pocos;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -39,6 +40,7 @@ namespace CareerCloud.ADODataAccessLayer
 
                 cmd.Parameters.AddWithValue("@Id", item.Id);
                 cmd.Parameters.AddWithValue("@Company", item.Company);
+                cmd.Parameters.AddWithValue("@Country_Code", item.CountryCode);
                 cmd.Parameters.AddWithValue("@State_Province_Code", item.Province);
                 cmd.Parameters.AddWithValue("@Street_Address", item.Street);
                 cmd.Parameters.AddWithValue("@City_Town", item.City);
@@ -57,7 +59,42 @@ namespace CareerCloud.ADODataAccessLayer
 
         public IList<CompanyLocationPoco> GetAll(params Expression<Func<CompanyLocationPoco, object>>[] navigationProperties)
         {
-            throw new NotImplementedException();
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = conn;
+            cmd.CommandText = @"SELECT [Id]
+                              ,[Company]
+                              ,[Country_Code]
+                              ,[State_Province_Code]
+                              ,[Street_Address]
+                              ,[City_Town]
+                              ,[Zip_Postal_Code]
+                              ,[Time_Stamp]
+                          FROM [dbo].[Company_Locations]";
+
+            conn.Open();
+            SqlDataReader rdr = cmd.ExecuteReader();
+
+            CompanyLocationPoco[] pocos = new CompanyLocationPoco[1000];
+            int counter = 0;
+
+            while (rdr.Read())
+            {
+                CompanyLocationPoco poco = new CompanyLocationPoco();
+                poco.Id = rdr.GetGuid(0);
+                poco.Company = rdr.GetGuid(1);
+                poco.CountryCode = rdr.GetString(2);
+                poco.Province = rdr.IsDBNull(3) ? null : rdr.GetString(3);
+                poco.Street = rdr.IsDBNull(4) ? null : rdr.GetString(4);
+                poco.City = rdr.IsDBNull(5) ? null : rdr.GetString(5);
+                poco.PostalCode = rdr.IsDBNull(6) ? null : rdr.GetString(6);
+                poco.TimeStamp = (byte[])rdr[7];
+
+                pocos[counter++] = poco;
+            }
+            conn.Close();
+
+            return pocos.Where(p => p != null).ToList();
         }
 
         public IList<CompanyLocationPoco> GetList(Expression<Func<CompanyLocationPoco, bool>> where, params Expression<Func<CompanyLocationPoco, object>>[] navigationProperties)
@@ -67,7 +104,8 @@ namespace CareerCloud.ADODataAccessLayer
 
         public CompanyLocationPoco GetSingle(Expression<Func<CompanyLocationPoco, bool>> where, params Expression<Func<CompanyLocationPoco, object>>[] navigationProperties)
         {
-            throw new NotImplementedException();
+            IQueryable<CompanyLocationPoco> pocos = GetAll().AsQueryable();
+            return pocos.Where(where).FirstOrDefault();
         }
 
         public void Remove(params CompanyLocationPoco[] items)
@@ -112,6 +150,7 @@ namespace CareerCloud.ADODataAccessLayer
 
                 cmd.Parameters.AddWithValue("@Id", item.Id);
                 cmd.Parameters.AddWithValue("@Company", item.Company);
+                cmd.Parameters.AddWithValue("@Country_Code", item.CountryCode);
                 cmd.Parameters.AddWithValue("@State_Province_Code", item.Province);
                 cmd.Parameters.AddWithValue("@Street_Address", item.Street);
                 cmd.Parameters.AddWithValue("@City_Town", item.City);

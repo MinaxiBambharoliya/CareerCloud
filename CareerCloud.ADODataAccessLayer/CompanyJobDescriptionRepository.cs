@@ -3,6 +3,7 @@ using CareerCloud.Pocos;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -48,7 +49,37 @@ namespace CareerCloud.ADODataAccessLayer
 
         public IList<CompanyJobDescriptionPoco> GetAll(params Expression<Func<CompanyJobDescriptionPoco, object>>[] navigationProperties)
         {
-            throw new NotImplementedException();
+
+            using SqlConnection conn = new SqlConnection(connString);
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = conn;
+            cmd.CommandText = @"SELECT [Id]
+                              ,[Job]
+                              ,[Job_Name]
+                              ,[Job_Descriptions]
+                              ,[Time_Stamp]
+                          FROM [dbo].[Company_Jobs_Descriptions]";
+
+            conn.Open();
+            SqlDataReader rdr = cmd.ExecuteReader();
+
+            CompanyJobDescriptionPoco[] pocos = new CompanyJobDescriptionPoco[10000];
+            int counter = 0;
+
+            while (rdr.Read())
+            {
+                CompanyJobDescriptionPoco poco = new CompanyJobDescriptionPoco();
+                poco.Id = rdr.GetGuid(0);
+                poco.Job = rdr.GetGuid(1);
+                poco.JobName = rdr.GetString(2);
+                poco.JobDescriptions = rdr.GetString(3);
+                poco.TimeStamp = (byte[])rdr[4];
+
+                pocos[counter++] = poco;
+            }
+            conn.Close();
+
+            return pocos.Where(p => p != null).ToList();
         }
 
         public IList<CompanyJobDescriptionPoco> GetList(Expression<Func<CompanyJobDescriptionPoco, bool>> where, params Expression<Func<CompanyJobDescriptionPoco, object>>[] navigationProperties)
@@ -58,7 +89,8 @@ namespace CareerCloud.ADODataAccessLayer
 
         public CompanyJobDescriptionPoco GetSingle(Expression<Func<CompanyJobDescriptionPoco, bool>> where, params Expression<Func<CompanyJobDescriptionPoco, object>>[] navigationProperties)
         {
-            throw new NotImplementedException();
+            IQueryable<CompanyJobDescriptionPoco> pocos = GetAll().AsQueryable();
+            return pocos.Where(where).FirstOrDefault();
         }
 
         public void Remove(params CompanyJobDescriptionPoco[] items)
