@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<RootNamespace>CareerCloud.BusinessLogicLayer</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\CareerCloud.DataAccessLayer\CareerCloud.DataAccessLayer.csproj" />
+		<ProjectReference Include="..\CareerCloud.Pocos\CareerCloud.Pocos.csproj" />
+	</ItemGroup>
+
+</Project>
