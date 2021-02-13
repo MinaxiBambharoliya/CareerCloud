@@ -29,13 +29,13 @@ namespace CareerCloud.BusinessLogicLayer
         protected override void Verify(CompanyProfilePoco[] pocos)
         {
             List<ValidationException> exceptions = new List<ValidationException>();
-            string sPattern = "^\\d{3}-\\d{3}-\\d{4}$";
+            string sPattern = @"^\d{3}-\d{3}-\d{4}$";
             foreach (CompanyProfilePoco poco in pocos)
             {
                 if (string.IsNullOrEmpty(poco.CompanyWebsite) || !(poco.CompanyWebsite.EndsWith(".ca") || poco.CompanyWebsite.EndsWith(".com") || poco.CompanyWebsite.EndsWith(".biz")))
                     exceptions.Add(new ValidationException(600, $"{poco.Id}'s must end with extensions ('.ca','.com','.biz')"));
 
-                if (string.IsNullOrEmpty(poco.ContactPhone) || Regex.IsMatch(poco.ContactPhone, sPattern) || poco.ContactPhone.Length != 12)
+                if (string.IsNullOrEmpty(poco.ContactPhone) || !Regex.IsMatch(poco.ContactPhone, sPattern) || poco.ContactPhone.Length != 12)
                     exceptions.Add(new ValidationException(601, $"{poco.Id}'s phone number must correspond to 123-456-7890 pattern!!"));
             }
 

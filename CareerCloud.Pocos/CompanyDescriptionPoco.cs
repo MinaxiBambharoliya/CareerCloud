@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -24,5 +25,11 @@ namespace CareerCloud.Pocos
 
         [Column("Time_Stamp")]
         public Byte[] TimeStamp { get; set; }
+
+        [NotMapped]
+        public virtual CompanyProfilePoco CompanyProfile { get; set; }
+
+        [NotMapped]
+        public virtual SystemLanguageCodePoco SystemLanguageCode { get; set; }
     }
 }
